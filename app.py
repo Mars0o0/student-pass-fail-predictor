@@ -36,7 +36,10 @@ def _find_bundles():
     found = {}
     for p in sorted((ROOT / "models").glob("*/model.pkl")):
         m = json.loads((p.parent / "model_metrics.json").read_text())
-        found["original" if "leak_check" in m else "dedup"] = {"model": joblib.load(p), "M": m, "dir": p.parent}
+        _csv = p.parent / "feature_importance.csv"
+        found["original" if "leak_check" in m else "dedup"] = {
+            "model": joblib.load(p), "M": m, "dir": p.parent,
+            "IMP": pd.read_csv(_csv) if _csv.exists() else None}
     return found if {"original", "dedup"} <= set(found) else None
 
 
@@ -94,6 +97,25 @@ IMP_ORDER = list(IMP.sort_values("perm_mean", ascending=False)["feature"])
 IMP_MAP = IMP.set_index("feature")
 DROP = {d["feature"]: d["cv_accuracy_without"] for d in M["ablation"]["drop_one"]}
 BANDS = {b["band"]: b for b in M["confidence_bands"]}
+
+
+def _view(Mb, imp):
+    """Everything on Insights that belongs to one model."""
+    return {"M": Mb, "T": Mb["test"], "D": Mb["dataset"], "IMP": imp,
+            "EVAL": "original data" if "leak_check" in Mb else "deduplicated data",
+            "DROP": {d["feature"]: d["cv_accuracy_without"] for d in Mb["ablation"]["drop_one"]}}
+
+
+VIEWS = {"original": _view(M, IMP)}
+if TWO_MODELS:
+    VIEWS["dedup"] = _view(BUNDLES["dedup"]["M"], BUNDLES["dedup"]["IMP"])
+
+
+def _order(v):
+    """Activities from most to least important for one model."""
+    if v["IMP"] is not None:
+        return list(v["IMP"].sort_values("perm_mean", ascending=False)["feature"])
+    return sorted(FEATURES, key=lambda f: v["DROP"][f])
 
 IDS = {"Submission.Actions": "submission", "Quiz.Actions": "quiz", "Forum.Actions": "forum",
        "Create.Actions": "create", "Read.Actions": "read", "Update.Actions": "update",
@@ -274,6 +296,10 @@ predict_page = ui.div(
 sel_choices = {f: L[f] for f in IMP_ORDER}
 insights_page = ui.div(
     ui.div(ui.h1("Insights"), ui.p("Data, model and reliability."), class_="page-head"),
+    *([ui.input_radio_buttons("ins_model", "Model",
+                              {"original": f"Original data ({pc(ORIG['acc'])})",
+                               "dedup": f"Deduplicated ({pc(DEDUP['acc'])})"},
+                              selected="original", inline=True)] if TWO_MODELS else []),
 
     ui.div(ui.span("Summary"), class_="section-title"),
     ui.output_ui("findings"),
@@ -309,26 +335,15 @@ insights_page = ui.div(
         class_="grid-2"),
 
     ui.div(ui.span("C. Model performance"), class_="section-title"),
+    ui.output_ui("perf_stats"),
     ui.div(
-        stat(f"Accuracy, {EVAL}", pc(T["accuracy"]), f"95% CI {pc(T['accuracy_ci95'][0])}–{pc(T['accuracy_ci95'][1])}"),
-        stat("Balanced accuracy", pc(T["balanced_accuracy"]), "mean recall"),
-        stat("Macro F1", pc(T["macro_f1"]), "mean F1"),
-        stat("ROC AUC", f"{T['roc_auc']:.2f}", "area under curve"),
-        class_="stat-strip"),
-    ui.div(
-        ui.div(ui.h2(f"Confusion matrix ({EVAL}, n = {D['test_rows']})"),
+        ui.div(ui.output_ui("cm_head"),
                ui.output_ui("plot_cm"), class_="panel"),
-        ui.div(ui.h2(f"Per-class results ({EVAL})"),
+        ui.div(ui.output_ui("rep_head"),
                ui.output_ui("report_table"),
                ui.h3("Models compared (5-fold CV)"),
                ui.output_ui("comparison_table"), class_="panel"),
         class_="grid-2"),
-    *([ui.div(
-        ui.div(ui.h2(f"Confusion matrix (deduplicated, n = {DEDUP['n']})"),
-               ui.output_ui("plot_cm_b"), class_="panel"),
-        ui.div(ui.h2("Per-class results (deduplicated)"),
-               ui.output_ui("report_table_b"), class_="panel"),
-        class_="grid-2")] if TWO_MODELS else []),
     ui.div(
         ui.h2("Original vs deduplicated data"),
         ui.output_ui("target_note"), class_="panel"),
@@ -336,7 +351,7 @@ insights_page = ui.div(
     ui.div(ui.span("D. What the model relies on"), class_="section-title"),
     ui.div(
         ui.div(ui.h2("Permutation importance"),
-               ui.output_ui("plot_imp"),
+               ui.output_ui("imp_panel"),
                class_="panel"),
         ui.div(ui.h2("Drop-one check"),
                ui.output_ui("imp_table"), class_="panel"),
@@ -590,6 +605,30 @@ def server(input, output, session):
     def plot_local():
         return charts.fig_local(result()["contrib"])
 
+    # ---- insights: the selected model
+    @reactive.calc
+    def cur():
+        return VIEWS[input.ins_model()] if TWO_MODELS else VIEWS["original"]
+
+    @render.ui
+    def perf_stats():
+        v = cur(); t = v["T"]
+        return ui.div(
+            stat(f"Accuracy, {v['EVAL']}", pc(t["accuracy"]), f"95% CI {pc(t['accuracy_ci95'][0])}\u2013{pc(t['accuracy_ci95'][1])}"),
+            stat("Balanced accuracy", pc(t["balanced_accuracy"]), "mean recall"),
+            stat("Macro F1", pc(t["macro_f1"]), "mean F1"),
+            stat("ROC AUC", f"{t['roc_auc']:.2f}", "area under curve"),
+            class_="stat-strip")
+
+    @render.ui
+    def cm_head():
+        v = cur()
+        return ui.h2(f"Confusion matrix ({v['EVAL']}, n = {v['D']['test_rows']})")
+
+    @render.ui
+    def rep_head():
+        return ui.h2(f"Per-class results ({cur()['EVAL']})")
+
     # ---- insights: charts
     @plot_ui("Class counts in the original file and after removing duplicates")
     def plot_balance():
@@ -605,32 +644,22 @@ def server(input, output, session):
 
     @plot_ui("Confusion matrix on the test set")
     def plot_cm():
-        return charts.fig_confusion(T["confusion_matrix"])
+        return charts.fig_confusion(cur()["T"]["confusion_matrix"])
 
-    if TWO_MODELS:
-        _tb = BUNDLES["dedup"]["M"]["test"]
-
-        @plot_ui("Confusion matrix on the test set, deduplicated model")
-        def plot_cm_b():
-            return charts.fig_confusion(_tb["confusion_matrix"])
-
-        @render.ui
-        def report_table_b():
-            rep = _tb["report"]
-            rows = [[c, pc(rep[c]["precision"]), pc(rep[c]["recall"]), pc(rep[c]["f1-score"]), f"{int(rep[c]['support'])}"] for c in ("High", "Low")]
-            return table(["Class", "Precision", "Recall", "F1", "Records"], rows, num={1, 2, 3, 4})
-
-    @plot_ui("Permutation importance of each activity")
-    def plot_imp():
-        return charts.fig_importance(IMP)
+    @render.ui
+    def imp_panel():
+        v = cur()
+        if v["IMP"] is None:
+            return ui.p("Not available for this model.")
+        return fig_html(charts.fig_importance(v["IMP"]), "Permutation importance of each activity")
 
     @plot_ui("Partial dependence of predicted High probability")
     def plot_pdp():
-        return charts.fig_pdp(M["pdp"], input.pdp_pick())
+        return charts.fig_pdp(cur()["M"]["pdp"], input.pdp_pick())
 
     @plot_ui("Calibration curve")
     def plot_cal():
-        return charts.fig_calibration(M["calibration_curve"])
+        return charts.fig_calibration(cur()["M"]["calibration_curve"])
 
     # ---- insights: tables and text
     @render.ui
@@ -650,13 +679,13 @@ def server(input, output, session):
 
     @render.ui
     def report_table():
-        rep = T["report"]
+        rep = cur()["T"]["report"]
         rows = [[c, pc(rep[c]["precision"]), pc(rep[c]["recall"]), pc(rep[c]["f1-score"]), f"{int(rep[c]['support'])}"] for c in ("High", "Low")]
         return table(["Class", "Precision", "Recall", "F1", "Records"], rows, num={1, 2, 3, 4})
 
     @render.ui
     def comparison_table():
-        rows = [[c["model"], pc(c["cv_accuracy"]), pc(c["cv_balanced_accuracy"])] for c in M["model_comparison"]]
+        rows = [[c["model"], pc(c["cv_accuracy"]), pc(c["cv_balanced_accuracy"])] for c in cur()["M"]["model_comparison"]]
         return table(["Model", "Accuracy", "Balanced acc."], rows, num={1, 2}, hl=0)
 
     def target_block():
@@ -664,8 +693,8 @@ def server(input, output, session):
             kv("Accuracy, original data", pc(ORIG["acc"])),
             kv("Accuracy, deduplicated data", pc(DEDUP["acc"])),
             kv("Test rows duplicated in training", f"{DUP_TEST[0]} of {DUP_TEST[1]}"),
-            kv("Algorithms compared", f"{len(M['model_comparison'])}"),
-            kv("Best cross-validated accuracy", pc(M["model_comparison"][0]["cv_accuracy"])),
+            kv("Algorithms compared", f"{len(cur()['M']['model_comparison'])}"),
+            kv("Best cross-validated accuracy", pc(cur()["M"]["model_comparison"][0]["cv_accuracy"])),
         ]
 
     @render.ui
@@ -680,37 +709,35 @@ def server(input, output, session):
 
     @render.ui
     def imp_table():
-        full = M["ablation"]["full_cv_accuracy"]
+        v = cur()
+        full = v["M"]["ablation"]["full_cv_accuracy"]
         rows = []
-        for f in IMP_ORDER:
-            rows.append([L[f], f"{100 * IMP_MAP.loc[f, 'perm_mean']:+.1f} pts",
-                         f"{100 * (DROP[f] - full):+.1f} pts"])
+        for f in _order(v):
+            shuffle = f"{100 * v['IMP'].set_index('feature').loc[f, 'perm_mean']:+.1f} pts" if v["IMP"] is not None else "\u2013"
+            rows.append([L[f], shuffle, f"{100 * (v['DROP'][f] - full):+.1f} pts"])
         return table(["Activity", "Shuffle drop", "Retrain without"], rows, num={1, 2})
 
     @render.ui
     def conf_table():
-        rows = [[b["band"], f"{b['n']}", pc(b["accuracy"], 0)] for b in M["confidence_bands"]]
+        rows = [[b["band"], f"{b['n']}", pc(b["accuracy"], 0)] for b in cur()["M"]["confidence_bands"]]
         return table(["Model confidence", "Test records", "Actually correct"], rows, num={1, 2})
 
     @render.ui
     def findings():
-        top3 = IMP_ORDER[:3]
-        weak = [L[f] for f in FEATURES if IMP_MAP.loc[f, "perm_mean"] < 0.005]
+        v = cur(); t, Dv, Mv = v["T"], v["D"], v["M"]
+        order = _order(v)
+        top3 = order[:3]
         q, fo, dy = STATS["Quiz.Actions"], STATS["Forum.Actions"], STATS["Days.Logged.In"]
-        dp = M["pdp"]["Days.Logged.In"]
-        full = M["ablation"]["full_cv_accuracy"]
-        worst_drop = min(DROP.items(), key=lambda kv: kv[1])
-        rep = T["report"]
-        lowb = [b for b in M["confidence_bands"] if b["band"] in ("50-60%", "60-70%")]
+        rep = t["report"]
+        lowb = [b for b in Mv["confidence_bands"] if b["band"] in ("50-60%", "60-70%")]
         n_low = sum(b["n"] for b in lowb)
         lo_acc, hi_acc = min(b["accuracy"] for b in lowb), max(b["accuracy"] for b in lowb)
-        err_share = 1 - T["accuracy"]
         items = [
             ("Top activities", f"{L[top3[0]]}, {L[top3[1]]}, {L[top3[2]]}"),
             ("Median quiz actions", f"High {q['median_high']:g}, Low {q['median_low']:g}"),
             ("Median forum actions", f"High {fo['median_high']:g}, Low {fo['median_low']:g}"),
             ("Median days logged in", f"High {dy['median_high']:g}, Low {dy['median_low']:g}"),
-            ("Confidence under 70%", f"{n_low} of {D['test_rows']} test records, {pc(lo_acc, 0)} to {pc(hi_acc, 0)} correct"),
+            ("Confidence under 70%", f"{n_low} of {Dv['test_rows']} test records, {pc(lo_acc, 0)} to {pc(hi_acc, 0)} correct"),
             ("F1 by class", f"High {pc(rep['High']['f1-score'], 0)}, Low {pc(rep['Low']['f1-score'], 0)}"),
         ]
         return ui.div(*[ui.div(ui.div(str(i + 1), class_="ic"), ui.div(ui.tags.b(t), ui.p(b)), class_="finding")
