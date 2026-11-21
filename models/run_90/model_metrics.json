@@ -1,0 +1,807 @@
+{
+  "protocol": {
+    "seed": 42,
+    "test_size": 0.2,
+    "split": "stratified",
+    "selection": "5-fold CV on training rows only",
+    "test_evaluations": 1
+  },
+  "dataset": {
+    "rows_supplied": 3602,
+    "exact_duplicate_copies": 882,
+    "unique_rows": 2720,
+    "conflicting_label_groups": 11,
+    "n_predictors": 8,
+    "class_counts_supplied": {
+      "High": 1801,
+      "Low": 1801
+    },
+    "class_counts_unique": {
+      "High": 1720,
+      "Low": 1000
+    },
+    "duplicate_copies_by_class": {
+      "Low": 801,
+      "High": 81
+    },
+    "train_rows": 2881,
+    "test_rows": 721,
+    "majority_baseline_train": 0.5001735508503992,
+    "majority_baseline_test": 0.5006934812760055
+  },
+  "features": [
+    "Submission.Actions",
+    "Quiz.Actions",
+    "Forum.Actions",
+    "Create.Actions",
+    "Read.Actions",
+    "Update.Actions",
+    "Delete.Actions",
+    "Days.Logged.In"
+  ],
+  "classes": [
+    "High",
+    "Low"
+  ],
+  "model_comparison": [
+    {
+      "model": "Random Forest",
+      "cv_accuracy": 0.8615070768341999,
+      "cv_accuracy_std": 0.008868753318525617,
+      "cv_balanced_accuracy": 0.8614871683967704,
+      "cv_f1_macro": 0.86114271195803
+    },
+    {
+      "model": "Extra Trees",
+      "cv_accuracy": 0.8549128634700558,
+      "cv_accuracy_std": 0.010197413239573504,
+      "cv_balanced_accuracy": 0.854895953479431,
+      "cv_f1_macro": 0.8547038886014157
+    },
+    {
+      "model": "Gradient Boosting",
+      "cv_accuracy": 0.7421059599460811,
+      "cv_accuracy_std": 0.017202799043891607,
+      "cv_balanced_accuracy": 0.7420991926182238,
+      "cv_f1_macro": 0.7417124665133148
+    },
+    {
+      "model": "Decision Tree",
+      "cv_accuracy": 0.7410654968226458,
+      "cv_accuracy_std": 0.018564891499355498,
+      "cv_balanced_accuracy": 0.7410539215686274,
+      "cv_f1_macro": 0.740655311686023
+    },
+    {
+      "model": "K-Nearest Neighbors",
+      "cv_accuracy": 0.6945437367610244,
+      "cv_accuracy_std": 0.01867197920725132,
+      "cv_balanced_accuracy": 0.6945417627835448,
+      "cv_f1_macro": 0.6941644840211223
+    },
+    {
+      "model": "Support Vector Machine",
+      "cv_accuracy": 0.6827478095513191,
+      "cv_accuracy_std": 0.00621168868078207,
+      "cv_balanced_accuracy": 0.6827638408304499,
+      "cv_f1_macro": 0.6825721247353828
+    },
+    {
+      "model": "Logistic Regression",
+      "cv_accuracy": 0.670600447718082,
+      "cv_accuracy_std": 0.007147847100894152,
+      "cv_balanced_accuracy": 0.6706134659746252,
+      "cv_f1_macro": 0.6704076773128957
+    }
+  ],
+  "tuned": [
+    {
+      "model": "Random Forest",
+      "best_cv_accuracy": 0.8705330492971308,
+      "best_params": {
+        "n_estimators": 300,
+        "min_samples_leaf": 1,
+        "max_features": 0.75,
+        "class_weight": null
+      }
+    },
+    {
+      "model": "Extra Trees",
+      "best_cv_accuracy": 0.8583862892355093,
+      "best_params": {
+        "n_estimators": 500,
+        "min_samples_leaf": 1,
+        "max_features": 0.75,
+        "class_weight": null
+      }
+    },
+    {
+      "model": "Gradient Boosting",
+      "best_cv_accuracy": 0.8389442518775274,
+      "best_params": {
+        "subsample": 1.0,
+        "n_estimators": 150,
+        "max_depth": 6,
+        "learning_rate": 0.1
+      }
+    }
+  ],
+  "selected_model": "Random Forest",
+  "selected_params": {
+    "n_estimators": 300,
+    "min_samples_leaf": 1,
+    "max_features": 0.75,
+    "class_weight": null
+  },
+  "calibrated": false,
+  "cv_brier": {
+    "base": 0.10222818119898237,
+    "calibrated": 0.10280338404851622
+  },
+  "test": {
+    "accuracy": 0.9001386962552012,
+    "accuracy_ci95": [
+      0.8760885234825572,
+      0.9199474656218211
+    ],
+    "balanced_accuracy": 0.9002116035703294,
+    "roc_auc": 0.961284241305017,
+    "brier": 0.08132454267345732,
+    "confusion_matrix": [
+      [
+        306,
+        55
+      ],
+      [
+        17,
+        343
+      ]
+    ],
+    "report": {
+      "High": {
+        "precision": 0.9473684210526315,
+        "recall": 0.8476454293628809,
+        "f1-score": 0.8947368421052632,
+        "support": 361.0
+      },
+      "Low": {
+        "precision": 0.8618090452261307,
+        "recall": 0.9527777777777777,
+        "f1-score": 0.9050131926121372,
+        "support": 360.0
+      }
+    },
+    "macro_f1": 0.8998750173587002,
+    "meets_90_target": true
+  },
+  "calibration_curve": {
+    "predicted": [
+      0.016440476190476203,
+      0.07768595041322313,
+      0.2348865116365116,
+      0.5615449494949495,
+      0.81930922017797,
+      0.9668832010582011
+    ],
+    "observed": [
+      0.032520325203252036,
+      0.03305785123966942,
+      0.19658119658119658,
+      0.7916666666666666,
+      0.975,
+      0.9833333333333333
+    ]
+  },
+  "confidence_bands": [
+    {
+      "band": "50-60%",
+      "n": 62,
+      "accuracy": 0.532258064516129
+    },
+    {
+      "band": "60-70%",
+      "n": 86,
+      "accuracy": 0.813953488372093
+    },
+    {
+      "band": "70-80%",
+      "n": 83,
+      "accuracy": 0.8554216867469879
+    },
+    {
+      "band": "80-90%",
+      "n": 150,
+      "accuracy": 0.9533333333333334
+    },
+    {
+      "band": "90-100%",
+      "n": 340,
+      "accuracy": 0.9764705882352941
+    }
+  ],
+  "leak_check": {
+    "test_rows": 721,
+    "test_rows_with_copy_in_train": 267,
+    "accuracy_rows_with_copy": 0.9850187265917603,
+    "accuracy_rows_without_copy": 0.8502202643171806,
+    "dedup_split_accuracy": 0.7665441176470589,
+    "dedup_split_ci95": [
+      0.7292016107799956,
+      0.8001484787349301
+    ],
+    "dedup_split_test_rows": 544
+  },
+  "ablation": {
+    "full_cv_accuracy": 0.8705310656022215,
+    "drop_one": [
+      {
+        "feature": "Submission.Actions",
+        "cv_accuracy_without": 0.8694897604998264
+      },
+      {
+        "feature": "Quiz.Actions",
+        "cv_accuracy_without": 0.8590767094758764
+      },
+      {
+        "feature": "Forum.Actions",
+        "cv_accuracy_without": 0.8594238111766748
+      },
+      {
+        "feature": "Create.Actions",
+        "cv_accuracy_without": 0.8663658451926415
+      },
+      {
+        "feature": "Read.Actions",
+        "cv_accuracy_without": 0.8132592849704964
+      },
+      {
+        "feature": "Update.Actions",
+        "cv_accuracy_without": 0.8653245400902464
+      },
+      {
+        "feature": "Delete.Actions",
+        "cv_accuracy_without": 0.8698368622006248
+      },
+      {
+        "feature": "Days.Logged.In",
+        "cv_accuracy_without": 0.8337382853175981
+      }
+    ]
+  },
+  "pdp": {
+    "Submission.Actions": {
+      "x": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        8.0,
+        9.0,
+        11.0,
+        12.0,
+        14.0,
+        17.0,
+        35.0
+      ],
+      "p_high": [
+        0.4856368357464332,
+        0.48807204764459194,
+        0.4889781683214519,
+        0.48540002698845114,
+        0.5067639197966342,
+        0.5096814638592667,
+        0.5769938595221483,
+        0.5774780085444785,
+        0.5807365511030037,
+        0.5702505463637882,
+        0.5655513540639365,
+        0.5735374617315783,
+        0.568214657149836,
+        0.5880067955717904
+      ]
+    },
+    "Quiz.Actions": {
+      "x": [
+        0.0,
+        1.0,
+        10.0,
+        14.0,
+        20.0,
+        32.0,
+        43.0,
+        52.0,
+        65.0,
+        78.0,
+        107.0,
+        243.0,
+        396.0
+      ],
+      "p_high": [
+        0.6312089772203447,
+        0.6137096632011593,
+        0.42925412940832935,
+        0.3975736654490559,
+        0.4228950650953428,
+        0.4369665680457072,
+        0.3912876949692292,
+        0.4102371338214795,
+        0.4259851379866999,
+        0.3876307857170405,
+        0.440851889500449,
+        0.444063737238503,
+        0.4458952772130488
+      ]
+    },
+    "Forum.Actions": {
+      "x": [
+        0.0,
+        1.0,
+        2.0,
+        4.0,
+        7.0,
+        11.0,
+        15.0,
+        19.0,
+        22.0,
+        27.0,
+        33.0,
+        47.0
+      ],
+      "p_high": [
+        0.565432426319358,
+        0.477858654894927,
+        0.49717774328465064,
+        0.4962187150592219,
+        0.4914136613319188,
+        0.48506231727699967,
+        0.4530993414584182,
+        0.43830453641387346,
+        0.465468715518351,
+        0.47989057080448955,
+        0.5031440707466392,
+        0.4694555366728223
+      ]
+    },
+    "Create.Actions": {
+      "x": [
+        0.0,
+        2.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0,
+        9.0,
+        10.0,
+        11.0,
+        12.0,
+        14.0,
+        16.0,
+        18.0,
+        22.0,
+        45.0
+      ],
+      "p_high": [
+        0.531473173913646,
+        0.5385488191279583,
+        0.5355170539797405,
+        0.5376890806880393,
+        0.5308654469189006,
+        0.5344874145998756,
+        0.5267480907319505,
+        0.516535931704276,
+        0.5145913490201931,
+        0.5547175067145563,
+        0.5838743608712369,
+        0.5601697821506916,
+        0.5255951458520012,
+        0.5254397214237547,
+        0.5324939849896462,
+        0.6563127369628584
+      ]
+    },
+    "Read.Actions": {
+      "x": [
+        9.0,
+        23.0,
+        36.0,
+        47.0,
+        56.0,
+        64.0,
+        72.0,
+        80.0,
+        88.0,
+        99.0,
+        110.0,
+        121.0,
+        131.0,
+        144.0,
+        155.0,
+        166.0,
+        185.0,
+        205.0,
+        224.0,
+        250.0,
+        278.0,
+        327.0,
+        387.0,
+        486.0,
+        832.0
+      ],
+      "p_high": [
+        0.47512049224831243,
+        0.5460801102461116,
+        0.5314741670936568,
+        0.5500076844459871,
+        0.5141358603889842,
+        0.5432925451269777,
+        0.5794694402747163,
+        0.5546622111931033,
+        0.5221443643806538,
+        0.5375097026946212,
+        0.5349627265114075,
+        0.5321152666898068,
+        0.5439370974584442,
+        0.5673635697481584,
+        0.5999946970573489,
+        0.5869390450846542,
+        0.5804806394384666,
+        0.5748402368004937,
+        0.5416278105596052,
+        0.5179566315708279,
+        0.5401069266072737,
+        0.5833396004473755,
+        0.5773451540745883,
+        0.5816179760114157,
+        0.5233500134983995
+      ]
+    },
+    "Update.Actions": {
+      "x": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0,
+        12.0,
+        121.0,
+        197.0
+      ],
+      "p_high": [
+        0.5108559721193355,
+        0.5151221815934589,
+        0.524845901411764,
+        0.5085154423526517,
+        0.5073997041371218,
+        0.5147611527082196,
+        0.510564461744434,
+        0.512817923119728,
+        0.5034512101728347,
+        0.5143160719106571,
+        0.5048101133314601,
+        0.502751800245726
+      ]
+    },
+    "Delete.Actions": {
+      "x": [
+        0.0,
+        1.0
+      ],
+      "p_high": [
+        0.48403994887637725,
+        0.48500742466231883
+      ]
+    },
+    "Days.Logged.In": {
+      "x": [
+        2.0,
+        4.0,
+        6.0,
+        8.0,
+        9.0,
+        10.0,
+        11.0,
+        12.0,
+        13.0,
+        14.0,
+        15.0,
+        16.0,
+        17.0,
+        18.0,
+        20.0,
+        21.0,
+        22.0,
+        24.0,
+        26.0,
+        28.0,
+        34.0
+      ],
+      "p_high": [
+        0.459569501564295,
+        0.46278945264115345,
+        0.517389334953809,
+        0.5110084639222091,
+        0.48912240969721005,
+        0.5180168687419642,
+        0.5040595842893656,
+        0.5338168059330851,
+        0.5565666971194565,
+        0.5610511390662379,
+        0.5520169945433743,
+        0.5375669895847786,
+        0.5584084680376766,
+        0.5858627415207596,
+        0.5964920727163872,
+        0.6073497995859155,
+        0.6062998169410005,
+        0.6413968125829459,
+        0.6471795269182461,
+        0.6506031066937871,
+        0.6431487120005863
+      ]
+    }
+  },
+  "feature_stats": [
+    {
+      "feature": "Submission.Actions",
+      "median_high": 4.0,
+      "median_low": 2.0,
+      "mean_high": 7.811215991116047,
+      "mean_low": 4.413659078289839,
+      "p_high_gt_low": 0.601450825795158,
+      "mw_p_value": 1.3016105833345133e-26
+    },
+    {
+      "feature": "Quiz.Actions",
+      "median_high": 0.0,
+      "median_low": 15.0,
+      "mean_high": 31.86507495835647,
+      "mean_low": 54.950027762354246,
+      "p_high_gt_low": 0.35166840804402266,
+      "mw_p_value": 4.221198011548549e-63
+    },
+    {
+      "feature": "Forum.Actions",
+      "median_high": 0.0,
+      "median_low": 1.0,
+      "mean_high": 6.6679622431982235,
+      "mean_low": 9.3858967240422,
+      "p_high_gt_low": 0.39720082710543003,
+      "mw_p_value": 5.196757323303561e-31
+    },
+    {
+      "feature": "Create.Actions",
+      "median_high": 8.0,
+      "median_low": 6.0,
+      "mean_high": 11.394780677401444,
+      "mean_low": 7.827873403664631,
+      "p_high_gt_low": 0.5603640830052772,
+      "mw_p_value": 3.114946006236811e-10
+    },
+    {
+      "feature": "Read.Actions",
+      "median_high": 127.0,
+      "median_low": 135.0,
+      "mean_high": 1472.399777901166,
+      "mean_low": 260.4858411993337,
+      "p_high_gt_low": 0.46440314329660154,
+      "mw_p_value": 0.00021571675258436957
+    },
+    {
+      "feature": "Update.Actions",
+      "median_high": 3.0,
+      "median_low": 3.0,
+      "mean_high": 13.032204330927263,
+      "mean_low": 18.364797334813993,
+      "p_high_gt_low": 0.47610032799965224,
+      "mw_p_value": 0.011947625000551618
+    },
+    {
+      "feature": "Delete.Actions",
+      "median_high": 0.0,
+      "median_low": 0.0,
+      "mean_high": 0.0843975569128262,
+      "mean_low": 0.061632426429761245,
+      "p_high_gt_low": 0.5084008483164236,
+      "mw_p_value": 0.038475612284477906
+    },
+    {
+      "feature": "Days.Logged.In",
+      "median_high": 14.0,
+      "median_low": 13.0,
+      "mean_high": 15.486396446418656,
+      "mean_low": 14.685730149916713,
+      "p_high_gt_low": 0.5344629317847663,
+      "mw_p_value": 0.0003366214482504761
+    }
+  ],
+  "feature_p99": {
+    "Submission.Actions": 42.0,
+    "Quiz.Actions": 445.0,
+    "Forum.Actions": 60.98999999999978,
+    "Create.Actions": 56.0,
+    "Read.Actions": 1655.0,
+    "Update.Actions": 217.98999999999978,
+    "Delete.Actions": 1.0,
+    "Days.Logged.In": 36.0
+  },
+  "correlation": {
+    "Submission.Actions": {
+      "Submission.Actions": 1.0,
+      "Quiz.Actions": -0.3038,
+      "Forum.Actions": -0.4161,
+      "Create.Actions": 0.8046,
+      "Read.Actions": 0.0599,
+      "Update.Actions": 0.5771,
+      "Delete.Actions": 0.0372,
+      "Days.Logged.In": 0.0598
+    },
+    "Quiz.Actions": {
+      "Submission.Actions": -0.3038,
+      "Quiz.Actions": 1.0,
+      "Forum.Actions": 0.5639,
+      "Create.Actions": -0.0532,
+      "Read.Actions": 0.6454,
+      "Update.Actions": 0.4247,
+      "Delete.Actions": -0.0072,
+      "Days.Logged.In": 0.3717
+    },
+    "Forum.Actions": {
+      "Submission.Actions": -0.4161,
+      "Quiz.Actions": 0.5639,
+      "Forum.Actions": 1.0,
+      "Create.Actions": -0.0479,
+      "Read.Actions": 0.5412,
+      "Update.Actions": 0.099,
+      "Delete.Actions": 0.0565,
+      "Days.Logged.In": 0.4592
+    },
+    "Create.Actions": {
+      "Submission.Actions": 0.8046,
+      "Quiz.Actions": -0.0532,
+      "Forum.Actions": -0.0479,
+      "Create.Actions": 1.0,
+      "Read.Actions": 0.2983,
+      "Update.Actions": 0.7178,
+      "Delete.Actions": 0.043,
+      "Days.Logged.In": 0.2717
+    },
+    "Read.Actions": {
+      "Submission.Actions": 0.0599,
+      "Quiz.Actions": 0.6454,
+      "Forum.Actions": 0.5412,
+      "Create.Actions": 0.2983,
+      "Read.Actions": 1.0,
+      "Update.Actions": 0.5461,
+      "Delete.Actions": 0.0471,
+      "Days.Logged.In": 0.7507
+    },
+    "Update.Actions": {
+      "Submission.Actions": 0.5771,
+      "Quiz.Actions": 0.4247,
+      "Forum.Actions": 0.099,
+      "Create.Actions": 0.7178,
+      "Read.Actions": 0.5461,
+      "Update.Actions": 1.0,
+      "Delete.Actions": 0.0378,
+      "Days.Logged.In": 0.3484
+    },
+    "Delete.Actions": {
+      "Submission.Actions": 0.0372,
+      "Quiz.Actions": -0.0072,
+      "Forum.Actions": 0.0565,
+      "Create.Actions": 0.043,
+      "Read.Actions": 0.0471,
+      "Update.Actions": 0.0378,
+      "Delete.Actions": 1.0,
+      "Days.Logged.In": 0.0504
+    },
+    "Days.Logged.In": {
+      "Submission.Actions": 0.0598,
+      "Quiz.Actions": 0.3717,
+      "Forum.Actions": 0.4592,
+      "Create.Actions": 0.2717,
+      "Read.Actions": 0.7507,
+      "Update.Actions": 0.3484,
+      "Delete.Actions": 0.0504,
+      "Days.Logged.In": 1.0
+    }
+  },
+  "describe": [
+    {
+      "feature": "Submission.Actions",
+      "count": 3602.0,
+      "mean": 6.11,
+      "std": 7.97,
+      "min": 0.0,
+      "25%": 2.0,
+      "50%": 3.0,
+      "75%": 8.0,
+      "max": 64.0
+    },
+    {
+      "feature": "Quiz.Actions",
+      "count": 3602.0,
+      "mean": 43.41,
+      "std": 94.56,
+      "min": 0.0,
+      "25%": 0.0,
+      "50%": 0.0,
+      "75%": 45.0,
+      "max": 691.0
+    },
+    {
+      "feature": "Forum.Actions",
+      "count": 3602.0,
+      "mean": 8.03,
+      "std": 14.38,
+      "min": 0.0,
+      "25%": 0.0,
+      "50%": 0.0,
+      "75%": 12.0,
+      "max": 143.0
+    },
+    {
+      "feature": "Create.Actions",
+      "count": 3602.0,
+      "mean": 9.61,
+      "std": 9.95,
+      "min": 0.0,
+      "25%": 4.0,
+      "50%": 7.0,
+      "75%": 12.0,
+      "max": 88.0
+    },
+    {
+      "feature": "Read.Actions",
+      "count": 3602.0,
+      "mean": 866.44,
+      "std": 13851.74,
+      "min": 1.0,
+      "25%": 70.0,
+      "50%": 131.0,
+      "75%": 229.75,
+      "max": 398872.0
+    },
+    {
+      "feature": "Update.Actions",
+      "count": 3602.0,
+      "mean": 15.7,
+      "std": 45.51,
+      "min": 0.0,
+      "25%": 2.0,
+      "50%": 3.0,
+      "75%": 5.0,
+      "max": 344.0
+    },
+    {
+      "feature": "Delete.Actions",
+      "count": 3602.0,
+      "mean": 0.07,
+      "std": 0.3,
+      "min": 0.0,
+      "25%": 0.0,
+      "50%": 0.0,
+      "75%": 0.0,
+      "max": 3.0
+    },
+    {
+      "feature": "Days.Logged.In",
+      "count": 3602.0,
+      "mean": 15.09,
+      "std": 7.72,
+      "min": 0.0,
+      "25%": 9.0,
+      "50%": 14.0,
+      "75%": 20.0,
+      "max": 55.0
+    }
+  ]
+}
