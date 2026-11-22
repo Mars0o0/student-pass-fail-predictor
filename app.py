@@ -80,6 +80,7 @@ else:  # run evaluated on deduplicated data; T is the deduplicated result
     CLEAN_NOTE = "duplicate rows removed before splitting."
     SPLIT_NOTE = " after deduplication"
     DATA_NOTE = f"augmented file; {D['exact_duplicate_copies']} duplicate rows removed."
+ERR_NOTE = f"about {1 - T['accuracy']:.0%} of test predictions were incorrect."
 SEL_NOTE = (" Selection used training data only; the test set was evaluated once."
             if M.get("protocol", {}).get("test_evaluations") == 1 else "")
 MODEL_NAMES = {"original": "Original-data model", "dedup": "Deduplicated model"}
@@ -88,7 +89,10 @@ if TWO_MODELS:
     _mb = BUNDLES["dedup"]["M"]
     DEDUP = {"acc": _mb["test"]["accuracy"], "ci": _mb["test"]["accuracy_ci95"], "n": _mb["dataset"]["test_rows"]}
     CLEAN_NOTE = f"duplicate rows ({D['exact_duplicate_copies']}) kept for the original-data model and removed for the deduplicated model."
-    DATA_NOTE = f"augmented file with {D['exact_duplicate_copies']} duplicate rows."
+    DATA_NOTE = (f"augmented file with {D['exact_duplicate_copies']} duplicate rows; kept in the original-data model, "
+                 f"removed in the deduplicated model. {DUP_TEST[0]} of {DUP_TEST[1]} original-data test rows also appear in training.")
+    ERR_NOTE = (f"incorrect test predictions: about {1 - ORIG['acc']:.0%} (original data), "
+                f"about {1 - DEDUP['acc']:.0%} (deduplicated).")
     MODELS_LI = (f"<li><b>Models:</b> original-data model ({M['selected_model']}) and deduplicated model "
                  f"({_mb['selected_model']}); either can be chosen on Predict.</li>")
 CORR = pd.DataFrame(M["correlation"]).loc[FEATURES, FEATURES]
@@ -416,7 +420,7 @@ about_page = ui.div(
                    <li><b>Measures:</b> LMS click counts. Offline study is not captured; the rating's definition is not documented.</li>
                    <li><b>Scope:</b> one course population; very large values are sparse in training.</li>
                    <li><b>Interpretation:</b> importance reflects model use, not cause.</li>
-                   <li><b>Errors:</b> about {pc(1 - T['accuracy'], 0)} of test predictions were incorrect.</li></ul>"""),
+                   <li><b>Errors:</b> {ERR_NOTE}</li></ul>"""),
                    class_="panel"),
             class_="col-main"),
         ui.div(
